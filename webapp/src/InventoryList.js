@@ -13,6 +13,9 @@ import TextField from '@mui/material/TextField';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import InventoryItem from './item.js';
+import Snackbar from '@mui/material/Snackbar';
 
 import axios from 'axios';
 
@@ -57,6 +60,12 @@ export default function InventoryList() {
     const [sellingPrice, setSellingPrice] = useState();
     const [costPrice, setCostPrice] = useState();
     const [stock, setStock] = useState();
+    const [shipmentModelOpen, setShipmentModelOpen] = useState(false);
+    const [customerName, setCustomerName] = useState("");
+    const [courierName, setCourierName] = useState("");
+    const [trackingNo, setTrackingNo] = useState("");
+    const [message, setMessage] = useState("");
+    const [toastOpen, setToastOpen] = useState(false);
 
     const handleClickOpen = () => {
         setOpen(true);
@@ -68,6 +77,10 @@ export default function InventoryList() {
 
     const handleDeleteClick = (id) => {
         console.log(id);
+    };
+
+    const handleSetToastClose = () => {
+        setToastOpen(false);
     };
 
     const url = "http://localhost:8080";
@@ -110,6 +123,47 @@ export default function InventoryList() {
         });
     };
 
+    const handleShipmentModelClose = () => {
+        setShipmentModelOpen(false);
+    };
+
+    const handleShipmentCreate = () => {
+        console.log(items);
+        const requestData = {'customer_name': customerName, 'courier_name': courierName, 'tracking_no': trackingNo};
+        const inventories = [];
+
+        items.forEach(items => {
+            if(items.quantity && items.quantity !== "0") {
+                inventories.push({'id': items.id, 'stock' : items.quantity});
+            }
+        });
+
+        if(inventories.length > 0) {
+            requestData['inventories'] = inventories;
+        }
+
+        axios.post(`${url}/api/shipment`, requestData).then((response) => {
+            if(response.data === "success") {
+                setMessage("Shipment created");
+                setToastOpen(true);
+                getInventoryList();
+                handleShipmentModelClose();
+            } else {
+                setMessage(response.data);
+                setToastOpen(true);
+            }
+        }).catch(error => {
+            console.error(`Error occurred, ${error}`);
+        });
+
+    };
+
+    const handleSetShipmentModelOpen = () => {
+        setShipmentModelOpen(true);
+    };
+
+    const elements = ['one', 'two', 'three'];
+
     return (
         <Box>
             {loading ? (
@@ -133,9 +187,14 @@ export default function InventoryList() {
                 </>
             )}
             <Box sx={{ '& > :not(style)': { m: 1 } }} style={{justifyContent: "flex-end", display: "flex"}}>
-            <Fab color="primary" aria-label="add" onClick={handleClickOpen}>
-                <AddIcon />
-            </Fab>
+                <Fab color="primary" aria-label="add" onClick={handleClickOpen}>
+                    <AddIcon />
+                </Fab>
+
+                <Fab variant="extended" onClick={handleSetShipmentModelOpen}>
+                    <LocalShippingIcon sx={{ mr: 1 }} />
+                    Create Shipment
+                </Fab>
             </Box>
 
             <Dialog open={open} onClose={handleClose}>
@@ -148,9 +207,9 @@ export default function InventoryList() {
                     <Box component="form">
                         <Stack spacing={2} sx={{ width: 500 }}>
                             <TextField autoFocus id="name" label="Name" type="text" fullWidth variant="standard" onChange={(e) => setItemName(e.target.value)} />
-                            <TextField autoFocus id="cost_price" label="Cost Price" type="text" fullWidth variant="standard" onChange={(e) => setCostPrice(e.target.value)} />
-                            <TextField autoFocus id="selling_price" label="Selling Price" type="text" fullWidth variant="standard" onChange={(e) => setSellingPrice(e.target.value)} />
-                            <TextField autoFocus id="stock" label="Stock" type="text" fullWidth variant="standard" onChange={(e) => setStock(e.target.value)} />
+                            <TextField id="cost_price" label="Cost Price" type="text" fullWidth variant="standard" onChange={(e) => setCostPrice(e.target.value)} />
+                            <TextField id="selling_price" label="Selling Price" type="text" fullWidth variant="standard" onChange={(e) => setSellingPrice(e.target.value)} />
+                            <TextField id="stock" label="Stock" type="text" fullWidth variant="standard" onChange={(e) => setStock(e.target.value)} />
                         </Stack>
                     </Box>
                 </DialogContent>
@@ -159,6 +218,42 @@ export default function InventoryList() {
                     <Button onClick={handleInventoryCreate}>Create</Button>
                 </DialogActions>
             </Dialog>
+
+
+            <Dialog open={shipmentModelOpen} onClose={handleShipmentModelClose} fullScreen>
+                <DialogTitle>Create Shipment</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Assign inventory and create shipment here.
+                    </DialogContentText>
+                    <Box component="form">
+                        <Stack spacing={2} sx={{ width: 500 }}>
+                            <TextField autoFocus id="customer_name" label="Customer Name" type="text" fullWidth variant="standard" onChange={(e) => setCustomerName(e.target.value)} />
+                            <TextField id="cost_price" label="Courier Name" type="text" fullWidth variant="standard" onChange={(e) => setCourierName(e.target.value)} />
+                            <TextField id="selling_price" label="Tracking No" type="text" fullWidth variant="standard" onChange={(e) => setTrackingNo(e.target.value)} />
+                            <div>
+                            Select items
+                            </div>
+                            <ul>
+                                {items.map((value, index) => {
+                                    return (
+                                        <li key={index}>{value.name}
+                                            <InventoryItem item={value} />
+                                        </li>
+                                    )
+                                })}
+                            </ul>
+
+                        </Stack>
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleShipmentModelClose}>Cancel</Button>
+                    <Button onClick={handleShipmentCreate}>Create</Button>
+                </DialogActions>
+            </Dialog>
+
+            <Snackbar open={toastOpen} autoHideDuration={6000} onClose={handleSetToastClose} message={message} />
         </Box>
     );
 }
