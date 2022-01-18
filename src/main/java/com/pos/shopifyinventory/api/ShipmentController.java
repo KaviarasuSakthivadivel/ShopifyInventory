@@ -1,6 +1,5 @@
 package com.pos.shopifyinventory.api;
 
-import com.pos.shopifyinventory.model.Inventory;
 import com.pos.shopifyinventory.model.Shipment;
 import com.pos.shopifyinventory.pojo.ShipmentWrapper;
 import com.pos.shopifyinventory.service.ShipmentService;
@@ -10,9 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @CrossOrigin(origins = "http://localhost:3000")
