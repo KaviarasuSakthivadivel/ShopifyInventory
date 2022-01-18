@@ -15,7 +15,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-@Controller
+@CrossOrigin(origins = "http://localhost:3000")
+@RestController
 @RequestMapping("/api/inventory")
 public class InventoryController {
 
@@ -38,10 +39,28 @@ public class InventoryController {
         return new ResponseEntity<>(inventory, HttpStatus.OK);
     }
 
-    @PutMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public ResponseEntity<Inventory> updateInventory(@RequestBody Inventory inventory) {
-        logger.debug("Updating inventory into db :: {0} ", new String[]{inventory.getName()});
+    public ResponseEntity<Inventory> updateInventory(@PathVariable(value="id") String id, @RequestBody Inventory updatedInventory) {
+        Optional<Inventory> inventoryOptional = this.inventoryRepository.findById(id);
+        if(!inventoryOptional.isPresent()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        Inventory inventory = inventoryOptional.get();
+        logger.debug("Updating inventory into db :: {0} ", new String[]{inventory.getId()});
+        inventory.setId(id);
+        if(updatedInventory.getName() != null) {
+            inventory.setName(updatedInventory.getName());
+        }
+        if(updatedInventory.getCost_price() != null) {
+            inventory.setCost_price(updatedInventory.getCost_price());
+        }
+        if(updatedInventory.getSelling_price() != null) {
+            inventory.setSelling_price(updatedInventory.getSelling_price());
+        }
+        if(updatedInventory.getStock() >= 0 ) {
+            inventory.setStock(updatedInventory.getStock());
+        }
         this.inventoryRepository.save(inventory);
         return new ResponseEntity<>(inventory, HttpStatus.OK);
     }
