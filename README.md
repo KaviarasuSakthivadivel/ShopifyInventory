@@ -1,5 +1,18 @@
 # Shopify Backend Developer Intern Challenge - Summer 2022
 
+### Hosting 
+I have hosted the application in AWS, kindly take a look. 
+
+   http://3.20.12.127:3000/
+
+Screenshots:
+
+![Inventory CRUD](images/1.jpg)
+
+I have chosen the task to create shipments and assign inventory items. To check the working, click on "Create Shipment" in the floating icon (bottom right corner)
+
+### Usage and setup
+
 Follow the below steps for the setup. 
 
 1. Clone the repo and cd into the main folder, `ShopifyInventory`. 
